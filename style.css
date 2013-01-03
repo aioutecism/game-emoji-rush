@@ -15,8 +15,16 @@ body {
     user-select: none;
 }
 
+#bgm {
+    display: none;
+}
+
 #canvas {
-    width: 100%;
-    height: 100%;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin: -232px 0 0 -232px;
+    width: 465px;
+    height: 465px;
     background: #000;
 }
