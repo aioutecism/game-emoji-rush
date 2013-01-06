@@ -23,8 +23,7 @@ body {
     position: absolute;
     left: 50%;
     top: 50%;
-    margin: -232px 0 0 -232px;
+    margin-left: -232px;
     width: 465px;
-    height: 465px;
     background: #000;
 }
