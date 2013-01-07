@@ -1,13 +1,3 @@
-// add
-// subtract
-// multiply
-// divide
-// modulo
-// equals
-window.onload = function() {
-    emojiRhythm.init();
-};
-
 var emojiRhythm = {
     // settings
     setting: {
@@ -72,7 +62,7 @@ var emojiRhythm = {
         },
         scorePow: 5,
         scoreFriend: 500,
-        playTime: 5,
+        playTime: 120,
         rhythmKey: 'space'
     },
     // ---
@@ -90,7 +80,7 @@ var emojiRhythm = {
         paper.install(window);
         paper.setup(this.canvasDom);
 
-        this.play();
+        this.startup();
     },
     _tools: {
         toLayer: function(layerName) {
@@ -106,6 +96,50 @@ var emojiRhythm = {
         var self = emojiRhythm;
         self._tools.toLayer('startup');
 
+        // music loading
+        var $musicLoading = new PointText([self.setting.size.width / 2, self.setting.size.height / 2]);
+        $musicLoading.name = 'musicLoading';
+        $musicLoading.content = 'LOADING MUSIC...';
+        $musicLoading.characterStyle = self.setting.characterStyle;
+        $musicLoading.paragraphStyle = { justification: 'center' };
+
+        self.music.addEventListener('canplaythrough', musicLoaded);
+
+        view.onFrame = function(e) {
+            if(!$musicLoading) return;
+
+            $musicLoading.matrix.scaleX = $musicLoading.matrix.scaleY = e.count;
+        };
+
+        function musicLoaded() {
+            $musicLoading.remove();
+            // help
+            var helpText = [
+                "リズムに合わせて、\nスペースキーを押せば加速できる。",
+                "白い絵文字を避けながら、\n色のある絵文字をキャッチできれば得点する。",
+                "タイムリミットは" + self.setting.playTime + "秒、",
+                "音量を大きくして、ゲーム・スタート！"
+            ];
+            var $help = new PointText([self.setting.size.width / 2, self.setting.size.height / 2]);
+            $help.name = 'help';
+            $help.step = 0;
+            $help.content = helpText[$help.step];
+            $help.characterStyle = self.setting.characterStyle;
+            $help.paragraphStyle = { justification: 'center' };
+
+            tool.onMouseDown = function(e) {
+                var self = emojiRhythm;
+
+                $help.step++;
+
+                if($help.step < helpText.length) {
+                    $help.content = helpText[$help.step];
+                }
+                else {
+                    self.play();
+                }
+            };
+        }
     },
     finish: function() {
         var self = emojiRhythm;
@@ -364,3 +398,7 @@ var emojiRhythm = {
         };
     }
 };
+
+(function() {
+    emojiRhythm.init();
+})();
