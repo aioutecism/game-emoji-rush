@@ -62,7 +62,7 @@ var emojiRhythm = {
         },
         scorePow: 5,
         scoreFriend: 500,
-        playTime: 120,
+        playTime: 100,
         rhythmKey: 'space'
     },
     // ---
@@ -83,7 +83,16 @@ var emojiRhythm = {
         this.startup();
     },
     _tools: {
+        detachEvent: function(who, events) {
+            if(!who._handlers) return;
+            for(var i in events) {
+                if(who._handlers[events[i]]) who._handlers[events[i]] = undefined;
+            }
+        },
         toLayer: function(layerName) {
+            var self = emojiRhythm;
+            self._tools.detachEvent(view, ['frame', 'resize']);
+            self._tools.detachEvent(tool, ['mousedown', 'mouseup', 'mousedrag', 'mousemove', 'keydown', 'keyup']);
             if(project.activeLayer) project.activeLayer.remove();
             return new Layer();
         },
@@ -105,45 +114,60 @@ var emojiRhythm = {
 
         self.music.addEventListener('canplaythrough', musicLoaded);
 
-        view.onFrame = function(e) {
+        view.attach('frame', function(e) {
             if(!$musicLoading) return;
 
-            $musicLoading.matrix.scaleX = $musicLoading.matrix.scaleY = e.count;
-        };
+            var rate = 0.995 + self._tools.rhythm(e.time, 0.2) / 100;
+            $musicLoading.scale(rate);
+        });
 
         function musicLoaded() {
             $musicLoading.remove();
+            $musicLoading = null;
+
             // help
             var helpText = [
-                "リズムに合わせて、\nスペースキーを押せば加速できる。",
+                "リズムに合わせて、\nスペースキーを押せば加速して、得点が高い。",
                 "白い絵文字を避けながら、\n色のある絵文字をキャッチできれば得点する。",
                 "タイムリミットは" + self.setting.playTime + "秒、",
                 "音量を大きくして、ゲーム・スタート！"
             ];
-            var $help = new PointText([self.setting.size.width / 2, self.setting.size.height / 2]);
+            var $help = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 + 100]);
             $help.name = 'help';
             $help.step = 0;
             $help.content = helpText[$help.step];
             $help.characterStyle = self.setting.characterStyle;
             $help.paragraphStyle = { justification: 'center' };
 
-            tool.onMouseDown = function(e) {
+            var $helpImage = new Raster('help_' + $help.step);
+            $helpImage.position = view.center;
+            project.activeLayer.insertChild(0, $helpImage);
+
+            tool.attach('mousedown', function(e) {
                 var self = emojiRhythm;
 
                 $help.step++;
 
                 if($help.step < helpText.length) {
+                    $helpImage.remove();
+                    $helpImage = new Raster('help_' + $help.step);
+                    $helpImage.position = view.center;
+                    project.activeLayer.insertChild(0, $helpImage);
+
                     $help.content = helpText[$help.step];
                 }
                 else {
                     self.play();
                 }
-            };
+            });
         }
     },
     finish: function() {
         var self = emojiRhythm;
         self._tools.toLayer('finish');
+
+        self.music.pause();
+        self.music.currentTime = 0;
 
         var $score = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 - 50]);
         $score.name = 'score';
@@ -246,7 +270,7 @@ var emojiRhythm = {
         self.music.play();
 
         // events
-        tool.onKeyDown = function(e) {
+        tool.attach('keydown', function(e) {
             var self = emojiRhythm;
 
             if(self.playStatus.onCrash) return;
@@ -260,13 +284,13 @@ var emojiRhythm = {
                 self.playStatus.speed -= self.setting.speed.miss;
             }
             if(self.playStatus.speed < self.setting.speed.min) self.playStatus.speed = self.setting.speed.min;
-        };
+        });
 
-        tool.onMouseMove = function(e) {
+        tool.attach('mousemove', function(e) {
             self.mousePoint = e.point;
-        };
+        });
 
-        view.onFrame = function(e) {
+        view.attach('frame', function(e) {
             var self = emojiRhythm;
 
             // started
@@ -274,8 +298,6 @@ var emojiRhythm = {
 
             // finish
             if(self.music.currentTime >= self.setting.playTime) {
-                self.music.pause();
-                self.music.currentTime = 0;
                 self.finish();
                 return;
             }
@@ -395,7 +417,7 @@ var emojiRhythm = {
             }
             if(self.playStatus.speed > self.playStatus.highSpeed) self.playStatus.highSpeed = self.playStatus.speed;
             $speed_now.content = Math.round(self.playStatus.speed * 100) / 100;
-        };
+        });
     }
 };
 

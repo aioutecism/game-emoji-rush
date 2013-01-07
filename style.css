@@ -19,6 +19,10 @@ body {
     display: none;
 }
 
+img {
+    display: none;
+}
+
 #canvas {
     position: absolute;
     left: 50%;
