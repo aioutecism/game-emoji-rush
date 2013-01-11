@@ -47,7 +47,7 @@ var emojiRhythm = {
         },
         // play
         musicRhythm: 0.423,
-        rhythmRange: 0.4,
+        rhythmRange: [0.1, 0.6],
         meSpeed: 0.1,
         othersInterval: 300,
         friendRate: 0.2,
@@ -57,7 +57,7 @@ var emojiRhythm = {
             min: 7,
             crash: 4,
             hit: 0.2,
-            miss: 0.4,
+            miss: 0.2,
             slower: 0.005
         },
         scorePow: 5,
@@ -277,7 +277,8 @@ var emojiRhythm = {
             if(e.key != self.setting.rhythmKey) return;
 
             var rhythm = self._tools.rhythm(self.music.currentTime, 1);
-            if(rhythm < self.setting.rhythmRange) {
+            console.log(rhythm);
+            if(self.setting.rhythmRange[0] < rhythm && rhythm < self.setting.rhythmRange[1]) {
                 self.playStatus.speed += self.setting.speed.hit;
             }
             else {
@@ -414,6 +415,11 @@ var emojiRhythm = {
             if(! self.playStatus.onCrash) {
                 self.playStatus.speed -= self.setting.speed.slower;
                 if(self.playStatus.speed < self.setting.speed.min) self.playStatus.speed = self.setting.speed.min;
+            }
+            if(! self.playStatus.onCrash) {
+                if(self.playStatus.speed < 8) $me_text.content = self.setting.emojiText.me.run_0;
+                else if(self.playStatus.speed < 10) $me_text.content = self.setting.emojiText.me.run_1;
+                else $me_text.content = self.setting.emojiText.me.run_2;
             }
             if(self.playStatus.speed > self.playStatus.highSpeed) self.playStatus.highSpeed = self.playStatus.speed;
             $speed_now.content = Math.round(self.playStatus.speed * 100) / 100;
