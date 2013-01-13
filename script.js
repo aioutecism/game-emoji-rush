@@ -63,7 +63,7 @@ var emojiRhythm = {
         scorePow: 5,
         scoreFriend: 500,
         playTime: 100,
-        rhythmKey: 'space'
+        rhythmKey: 'f'
     },
     // ---
     layers: {},
@@ -127,10 +127,10 @@ var emojiRhythm = {
 
             // help
             var helpText = [
-                "リズムに合わせて、\nスペースキーを押せば加速して、得点が高い。",
+                "リズムに合わせて、\n「F」キーを押せば加速して、得点が高い。",
                 "白い絵文字を避けながら、\n色のある絵文字をキャッチできれば得点する。",
                 "タイムリミットは" + self.setting.playTime + "秒、",
-                "音量を大きくして、ゲーム・スタート！"
+                "\n\n音量を大きくして、ゲーム・スタート！"
             ];
             var $help = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 + 100]);
             $help.name = 'help';
