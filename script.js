@@ -112,9 +112,9 @@ var emojiRhythm = {
         $musicLoading.characterStyle = self.setting.characterStyle;
         $musicLoading.paragraphStyle = { justification: 'center' };
 
-        self.music.addEventListener('canplaythrough', musicLoaded);
-
         view.attach('frame', function(e) {
+            var self = emojiRhythm;
+            if(self.music.readyState === 4) musicLoaded();
             if(!$musicLoading) return;
 
             var rate = 0.995 + self._tools.rhythm(e.time, 0.2) / 100;
