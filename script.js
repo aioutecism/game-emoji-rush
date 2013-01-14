@@ -114,8 +114,11 @@ var emojiRhythm = {
 
         view.attach('frame', function(e) {
             var self = emojiRhythm;
-            if(self.music.readyState === 4) musicLoaded();
             if(!$musicLoading) return;
+            if(self.music.readyState === 4) {
+                musicLoaded();
+                return;
+            }
 
             var rate = 0.995 + self._tools.rhythm(e.time, 0.2) / 100;
             $musicLoading.scale(rate);
@@ -127,9 +130,9 @@ var emojiRhythm = {
 
             // help
             var helpText = [
-                "リズムに合わせて、\n「F」キーを押せば加速して、得点が高い。",
-                "白い絵文字を避けながら、\n色のある絵文字をキャッチできれば得点する。",
-                "タイムリミットは" + self.setting.playTime + "秒、",
+                "リズムに合わせて、\n「F」キーを押せば加速して、得点が高い",
+                "マウスで白い絵文字を避けながら、\n色のある絵文字をキャッチできれば得点",
+                "タイムリミットは" + self.setting.playTime + "秒",
                 "\n\n音量を大きくして、ゲーム・スタート！"
             ];
             var $help = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 + 100]);
@@ -138,6 +141,12 @@ var emojiRhythm = {
             $help.content = helpText[$help.step];
             $help.characterStyle = self.setting.characterStyle;
             $help.paragraphStyle = { justification: 'center' };
+
+            var $next = new PointText([self.setting.size.width - 50, self.setting.size.height - 50]);
+            $next.name = 'next';
+            $next.content = 'Click to continue';
+            $next.characterStyle = self.setting.characterStyle;
+            $next.paragraphStyle = { justification: 'right' };
 
             var $helpImage = new Raster('help_' + $help.step);
             $helpImage.position = view.center;
@@ -155,6 +164,8 @@ var emojiRhythm = {
                     project.activeLayer.insertChild(0, $helpImage);
 
                     $help.content = helpText[$help.step];
+
+                    if($help.step == helpText.length - 1) $next.remove();
                 }
                 else {
                     self.play();
@@ -169,18 +180,82 @@ var emojiRhythm = {
         self.music.pause();
         self.music.currentTime = 0;
 
-        var $score = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 - 50]);
+        var $score = new PointText([self.setting.size.width / 2, 100]);
         $score.name = 'score';
         $score.content = "SCORE\n" + self.playStatus.score;
         $score.characterStyle = self.setting.characterStyle;
         $score.paragraphStyle = { justification: 'center' };
         $score.fontSize = 50;
 
-        var $highSpeed = new PointText([self.setting.size.width / 2, self.setting.size.height / 2 + 50]);
+        var $highSpeed = new PointText([self.setting.size.width / 2, 200]);
         $highSpeed.name = 'highSpeed';
         $highSpeed.content = 'HIGH SPEED: ' + Math.round(self.playStatus.highSpeed * 100) / 100 + ' km/h';
         $highSpeed.characterStyle = self.setting.characterStyle;
         $highSpeed.paragraphStyle = { justification: 'center' };
+
+        var leaderScores = [
+            ['アンディ', 51897],
+            ['もも', 47299],
+            ['せりか', 36575],
+            ['さっぴぃ☆彡', 24204],
+            ['くまくま', 18485]
+        ];
+        var score = self.playStatus.score;
+        for(var i = 0; i < leaderScores.length; i++) {
+            if(score >= leaderScores[i][1]) {
+                leaderScores.splice(i, 0, ['「君」', score]);
+                leaderScores.pop();
+                break;
+            }
+        }
+
+        var $leaderboard_name = new PointText([-120, 0]);
+        $leaderboard_name.name = 'name';
+        $leaderboard_name.characterStyle = self.setting.characterStyle;
+        $leaderboard_name.fontSize = 16;
+        $leaderboard_name.paragraphStyle = { justification: 'left' };
+
+        var $leaderboard_score = new PointText([120, 0]);
+        $leaderboard_score.name = 'score';
+        $leaderboard_score.characterStyle = self.setting.characterStyle;
+        $leaderboard_score.fontSize = 16;
+        $leaderboard_score.paragraphStyle = { justification: 'right' };
+
+        for(var i = 0; i < leaderScores.length; i++) {
+            $leaderboard_name.content += leaderScores[i][0] + "\n";
+            $leaderboard_score.content += leaderScores[i][1] + "\n";
+        }
+
+        var $leaderboard = new Group($leaderboard_name, $leaderboard_score);
+        $leaderboard.name = 'leaderboard';
+        $leaderboard.position = [self.setting.size.width / 2, 300];
+
+        var $facebook = new Raster('share_facebook');
+        $facebook.name = 'facebook';
+        $facebook.position = [self.setting.size.width / 2 - 120, self.setting.size.height - 75];
+
+        var $twitter = new Raster('share_twitter');
+        $twitter.name = 'twitter';
+        $twitter.position = [self.setting.size.width / 2 - 60, self.setting.size.height - 75];
+
+        var $retry = new Raster('retry');
+        $retry.name = 'retry';
+        $retry.position = [self.setting.size.width / 2 + 80, self.setting.size.height - 75];
+
+        tool.attach('mouseup', function(e) {
+            var hitResult = project.hitTest(e.point);
+            if(!hitResult) return;
+            var $_item = hitResult.item;
+            if($_item.name == 'facebook') {
+                window.open('https://www.facebook.com/sharer/sharer.php?s=100&p[url]=http%3A%2F%2Fjsdo.it%2Faioutecism%2Fp8eN&p[summary]=I%20got%20' + self.playStatus.score + '%20in%20this%20game!&p[title]=Emoji%20Rush');
+            }
+            else if($_item.name == 'twitter') {
+                window.open('https://twitter.com/intent/tweet?text=I%20got%20' + self.playStatus.score + '%20in%20this%20game!%20Emoji%20Rush&url=http%3A%2F%2Fjsdo.it%2Faioutecism%2Fp8eN');
+            }
+            else if($_item.name == 'retry') {
+                self.startup();
+            }
+        });
     },
     play: function() {
         var self = emojiRhythm;
@@ -264,6 +339,26 @@ var emojiRhythm = {
 
         project.activeLayer.addChild($speed);
 
+        // saying
+        var says = {
+            good: [
+                '気持ちいい！',
+                'いい感じ！',
+                'うまいッ！'
+            ],
+            bad: [
+                '痛い。。。',
+                'いやああああああ',
+                '目が。。。'
+            ]
+        };
+        var $saying = new PointText(view.center);
+        $saying.name = 'saying';
+        $saying.characterStyle = self.setting.characterStyle;
+        $saying.paragraphStyle = { justification: 'center' };
+        $saying.fontSize = 40;
+        project.activeLayer.insertChild(0, $saying);
+
         // music
         self.music.pause();
         self.music.currentTime = 0;
@@ -277,7 +372,6 @@ var emojiRhythm = {
             if(e.key != self.setting.rhythmKey) return;
 
             var rhythm = self._tools.rhythm(self.music.currentTime, 1);
-            console.log(rhythm);
             if(self.setting.rhythmRange[0] < rhythm && rhythm < self.setting.rhythmRange[1]) {
                 self.playStatus.speed += self.setting.speed.hit;
             }
@@ -404,6 +498,15 @@ var emojiRhythm = {
                     self.playStatus.score += self.setting.scoreFriend;
                 }
                 $_text.remove();
+                // saying
+                if($saying.timeout) clearTimeout($saying.timeout);
+                var randomSay = Math.floor(Math.random() * 3);
+                $saying.content = isFriend ? says.good[randomSay] : says.bad[randomSay];
+                $saying.fillColor = $saying.strokeColor = isFriend ? $_text.fillColor : '#777777';
+                $saying.visible = true;
+                $saying.timeout = setTimeout(function() {
+                    $saying.visible = false;
+                }, 3000);
                 break;
             }
 
