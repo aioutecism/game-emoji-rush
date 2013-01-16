@@ -421,7 +421,7 @@ var emojiRhythm = {
                 var right = left + tailWidth;
                 $_tail.add([left, y]);
                 $_tail.insert(0, [right, y]);
-                if($_tail.segments.length > 100) {
+                if($_tail.segments.length > 14) {
                     var i = Math.round($_tail.segments.length / 2);
                     $_tail.segments[i].remove();
                     $_tail.segments[i - 1].remove();
